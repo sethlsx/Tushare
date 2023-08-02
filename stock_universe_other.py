@@ -42,11 +42,12 @@ print('Records loaded.')
 time.sleep(1)
 effective_cal = list(date for date in tr_cal if not os.path.exists(data_path + date + '_final.csv'))
 p_bar = tqdm(effective_cal)
+#为了避免重复请求数据，提高效率，增加一些缓存变量，当判断与上个交易日的前一个交易年或者前一个交易月底是同一年或者同一月的情况，不再重复请求数据，而是直接调用缓存的数据，大幅减少运行时间
 last_previous_year = 0
 last_previous_month = 0
 last_records_year = dict()
 last_records_month = dict()
-i = 0
+i = 0 #用于计数，避免超出单分钟请求次数
 for day in p_bar:
     '''
     if os.path.exists(data_path+day+'_final.csv'):
@@ -94,16 +95,16 @@ for day in p_bar:
                    previous_month_cal.loc[date].is_open == 1)
     for row in bar.index:
         stock = bar.loc[row].ts_code
-        if stock in list(stock_list_full['ts_code']):
+        if stock in list(stock_list_full['ts_code']):   #先标记上市了多少个月
             bar.loc[row, 'list_day'] = str(
                 stock_list_full.loc[stock_list_full['ts_code'] == stock, 'list_date'].values[0])
             list_day = datetime.strptime(bar.loc[row, 'list_day'], '%Y%m%d')
             diff_month = (current_date.year - list_day.year) * 12 + current_date.month - list_day.month
             bar.loc[row, 'Month_from_list'] = diff_month
-        if previous_year == last_previous_year:
-            if stock in last_records_year:
+        if previous_year == last_previous_year: #如果与上个交易日是同一年，直接调用之前的数据，不用再循环统计一次
+            if stock in last_records_year: #这个判断很重要，因为有的股票上个交易日可能还没上市或没交易，不判断会出错
                 bar.loc[row, 'records_last_year'] = last_records_year[stock]
-            else:
+            else: #如果出现了上个交易日没有交易的股票，开始统计
                 records_year = 0
                 for d in p_y_cal:
                     df = trading_records[d]
@@ -113,7 +114,7 @@ for day in p_bar:
                         records_year += 1
                 bar.loc[row, 'records_last_year'] = records_year
                 last_records_year[stock] = records_year
-        else:
+        else: #如果与上个交易日不是一年，开始统计
             last_previous_year = previous_year
             records_year = 0
             for d in p_y_cal:
@@ -125,7 +126,7 @@ for day in p_bar:
 
             bar.loc[row, 'records_last_year'] = records_year
             last_records_year[stock] = records_year
-        if previous_month == last_previous_month:
+        if previous_month == last_previous_month: #月度统计与年度统计一样的逻辑与处理方式，不再重复注释
             if stock in last_records_month:
                 bar.loc[row, 'records_last_month'] = last_records_month[stock]
             else:

@@ -11,6 +11,7 @@ print(trade_calendar.head())
 trade_calendar['first_day_in_year'] = 0
 trade_calendar['first_day_in_month'] = 0
 
+#判断是否是年首日或者月首日，并标记
 for row in trade_calendar.index:
     cal_date = str(trade_calendar.loc[row].cal_date)
     pretrade_date = str(trade_calendar.loc[row].pretrade_date)
@@ -23,7 +24,7 @@ for row in trade_calendar.index:
     #print(month)
     if year > pre_year and is_open == 1:
         trade_calendar.loc[row, 'first_day_in_year'] = 1
-        trade_calendar.loc[row, 'first_day_in_month'] = 1
+        trade_calendar.loc[row, 'first_day_in_month'] = 1 #年首日必定是月首日
     if month > pre_month and is_open == 1:
         trade_calendar.loc[row, 'first_day_in_month'] = 1
 

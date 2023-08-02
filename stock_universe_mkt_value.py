@@ -38,7 +38,7 @@ for day in tr_cal:
         stock = bar.loc[row].ts_code
         #print(stock)
         #print(mkt_value.loc[mkt_value['ts_code'] == stock, 'total_mv'])
-        if stock in list(mkt_value['ts_code']):
+        if stock in list(mkt_value['ts_code']): #对于接过壳的股票，会出现借壳前的同代码股票有交易记录数据却没有市值数据的情况，为避免出错增加判断语句
             bar.loc[row, 'mkt_value'] = mkt_value.loc[mkt_value['ts_code']==stock,'total_mv'].values[0]
             #print(bar.head())
     bar.to_csv(data_path+day+'_processed.csv')

@@ -30,7 +30,7 @@ tr_cal = list(trade_calendar.loc[date].cal_date for date in trade_calendar.index
 #获取行情数据，注意每分钟只能请求200次
 i=0
 for date in tr_cal:
-    if os.path.exists(data_path+date+'.csv'):
+    if os.path.exists(data_path+date+'.csv'): #避免请求数据过程中因网络或者调用次数限制出错退出，增加判断语句，避免重复申请已获得的数据
         continue
     bar = pro.daily(trade_date=date)
     bar.to_csv(data_path+date+'.csv')
@@ -38,6 +38,6 @@ for date in tr_cal:
     print(i)
     print(date)
     if i>=200:
-        time.sleep(60)
+        time.sleep(60) #请求200次休息1分钟
         i = 0
 
